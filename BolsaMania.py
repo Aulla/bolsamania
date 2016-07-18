@@ -21,18 +21,18 @@
 
 from tools.recolector import recolector
 from tools.database import database
-from tools.controlesqt5 import tableviewQt5
+from tools.controlesqt5 import tableviewQt5, fieldData, formRecord
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox
-from PyQt5 import uic
+from PyQt5 import uic, Qt
 
 import os, sys
 
 qtFolder = "./forms/"
 qtMainWindow = "%smainwindow.ui" % qtFolder
-qtWalletWindow = "%smasterwallet.ui" % qtFolder
+qtMasterWalletWindow = "%smasterwallet.ui" % qtFolder
+qtWalletWindow = "%swallet.ui" % qtFolder
 
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtMainWindow)
-Ui_wallet = uic.loadUiType(qtWalletWindow)
 
 version = "0.1"
 
@@ -43,6 +43,7 @@ class BolsaMania(QMainWindow):
     cursor = None
     uiMW = None
     uiWallet = None
+    uiMasterWallet = None
     _tableViewWallet = None
     
     def __init__(self):
@@ -70,9 +71,10 @@ class BolsaMania(QMainWindow):
         
     def cartera_clicked(self):
         print("Abriendo mi cartera ...")
-        self.uiWallet = uic.loadUi(qtWalletWindow)
+        self.uiMasterWallet = uic.loadUi(qtMasterWalletWindow)
+        self.uiMasterWallet.setModal(True)
         self.cargaCartera()
-        self.uiWallet.show()
+        self.uiMasterWallet.show()
     
     def prevision_clicked(self):
         print("Abriendo prevision ...")  
@@ -82,15 +84,31 @@ class BolsaMania(QMainWindow):
     
     def cargaCartera(self):
         self.pintatvWallet()
-        self.uiWallet.pbAdd.clicked.connect(self.addCartera_clicked)
-        self.uiWallet.pbDel.clicked.connect(self.delCartera_clicked)
-        #self.uiWallet.pbModify.clicked.connect(self.modifyCartera_clicked)
+        self.uiMasterWallet.pbAdd.clicked.connect(self.addCartera_clicked)
+        self.uiMasterWallet.pbDel.clicked.connect(self.delCartera_clicked)
+        self.uiMasterWallet.pbMod.clicked.connect(self.modifyCartera_clicked)
         
     
-    
-    def addCartera_clicked(self):
-        print ("Valor = %s" % self._tableViewWallet.valorGridSeleccionado(0))
+    def formCartera(self, titulo= None):
+        self.uiWallet = formRecord(titulo)
+        cdescripcion = fieldData("Descripción", "yo mismo")
+        cacciones = fieldData("Cartera", True)
+        cotros = fieldData("Otros", "Otra cosa")
 
+        self.uiWallet.addFieldData(cdescripcion)
+        self.uiWallet.addFieldData(cacciones)
+        self.uiWallet.addFieldData(cotros)
+        
+    def addCartera_clicked(self):
+        self.formCartera("Nueva Cartera")
+        self.uiWallet.show()
+        
+
+    def modifyCartera_clicked(self):
+        self.formCartera("Modificar cartera Cartera")
+        self.uiWallet.show()
+        
+        
     def delCartera_clicked(self):
         reply = QMessageBox.question(self, 'Message', "¿Desea eliminar la cartera seleccionada ?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
@@ -98,8 +116,8 @@ class BolsaMania(QMainWindow):
 
     
     def pintatvWallet(self):
-        print("Pintando cabecera de tvWallet")
-        self._tableViewWallet = tableviewQt5(self.uiWallet.tvWallet)
+        #print("Pintando cabecera de tvWallet")
+        self._tableViewWallet = tableviewQt5(self.uiMasterWallet.tvWallet)
         self._tableViewWallet.cargaCabecera(0,"ID", 0)
         self._tableViewWallet.cargaCabecera(1,"DESCRIPCION", 0)
         self._tableViewWallet.cargaCabecera(2,"ACCIONES", 0 )

@@ -51,7 +51,7 @@
               <item>
                <widget class="QPushButton" name="pbMod">
                 <property name="text">
-                 <string>del</string>
+                 <string>Modificar</string>
                 </property>
                </widget>
               </item>
