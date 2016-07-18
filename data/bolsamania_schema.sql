@@ -24,3 +24,6 @@ create table cartera (
     actualizado	 date
 );
 
+insert into bolsa (name, description) values ('^IBEX', 'Bolsa de Madrid');    
+insert into valores (name, description, bolsa) values ('SAM.MC', 'Santander', '^IBEX');
+insert into cartera (description, acciones,valor) values ('Santander','200','SAM.MC');

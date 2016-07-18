@@ -34,8 +34,7 @@ class database(object):
         if self.close:
             self.conecta()
         print("Creando schema ...")
-        self.conn.executescript(schema)       
-        self.introduceDatos()
+        self.conn.executescript(schema)
         #self.desconecta()
     
     def setFilename(self, fichero):
@@ -55,9 +54,6 @@ class database(object):
         print("Desconectando de %s" % self.fileName)
         self.conn.close()
         self.close = True
-    
-    def introduceDatos(self):
-        print("Introduciendo Datos ...")     
-        self.conn.executescript("insert into bolsa (name, description) values ('^IBEX', 'Bolsa de Madrid')")    
-        self.conn.executescript("insert into valores (name, description, bolsa) values ('SAM.MC', 'Santander', '^IBEX')")
+       
+
         

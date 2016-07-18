@@ -78,8 +78,9 @@ class formRecord(Qt.QDialog):
         self.setWindowTitle(titulo)
         self.setModal(True)
         self._layout = Qt.QVBoxLayout()
-        
+        self._layout.addStretch(1)
         self.setLayout(self._layout)
+        
         
     
     def addFieldData(self, fieldName):
@@ -165,7 +166,8 @@ class fieldData(QtWidgets.QWidget):
     
     def paintLayout(self):
         #Redimensiona el control apra que aparezcan bien todos los campos
-        self.setFixedSize(100,100)
+        _leng = 220
+        self.setFixedSize(_leng,40)
     
     def editable(self):
         return self._editable
