@@ -26,6 +26,7 @@ class database(object):
     fileName = None
     conn = None
     close = True
+    _cursor = None
     
     def createSchema(self):
         schema_filename = "./data/bolsamania_schema.sql"
@@ -34,7 +35,7 @@ class database(object):
         if self.close:
             self.conecta()
         print("Creando schema ...")
-        self.conn.executescript(schema)
+        self.sqlQuery(schema)
         #self.desconecta()
     
     def setFilename(self, fichero):
@@ -45,6 +46,7 @@ class database(object):
             return
         print("Conectando a %s" % self.fileName)
         self.conn = sqlite3.connect(self.fileName)
+        self._cursor = self.conn.cursor()
         self.close = False
     
     def filename(self):
@@ -54,6 +56,17 @@ class database(object):
         print("Desconectando de %s" % self.fileName)
         self.conn.close()
         self.close = True
-       
-
+    
+    def sqlSelect(self,tablename,campo,where = None):
+        if where is None:
+            where = '1=1'
+        _query = "select %s FROM %s WHERE %s" % (campo,tablename,where)
+        self._cursor.execute(_query)
+        return self._cursor.fetchall()
+    
+    def sqlQuery(self, _sqlQuery):
+        #print("Ejecutando query :\n%s" % _sqlQuery)
+        if not self._cursor.executescript(_sqlQuery):
+            print("SQL Error : %s" % _sqlQuery)
+    
         

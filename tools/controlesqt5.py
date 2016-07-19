@@ -19,7 +19,6 @@
 #
 ##############################################################################
 from PyQt5 import QtGui, Qt, QtWidgets
-from PyQt5.uic.uiparser import _layout_position
 
 class tableviewQt5(object):
     
@@ -55,7 +54,6 @@ class tableviewQt5(object):
     #Retorna el valor del campo especificado en la linea seleccionada
     def valorGridSeleccionado(self, campo):
         curentIndex = self._tableView.currentIndex()
-        #print("Current index row es %s" % curentIndex.row())
         if curentIndex.row() >= 0:
             return self._model.item(curentIndex.row(), campo).text()
         else:
@@ -71,22 +69,56 @@ class tableviewQt5(object):
   
 class formRecord(Qt.QDialog):
     
-    _layout = None
+    _layoutUpper = None
+    _layoutBotton = None
+    _mainLayout = None
+    _butonBox = None
+    _campos = None
+    _countFieldData = None
+    
     
     def __init__(self, titulo = None):
         super(formRecord, self).__init__()
         self.setWindowTitle(titulo)
         self.setModal(True)
-        self._layout = Qt.QVBoxLayout()
-        self._layout.addStretch(1)
-        self.setLayout(self._layout)
+        self._layoutUpper = Qt.QVBoxLayout()
+        self._layoutBotton = Qt.QVBoxLayout()
+        self._mainLayout = Qt.QVBoxLayout()
+        self._butonBox = Qt.QDialogButtonBox()
+        self._butonBox.addButton(Qt.QDialogButtonBox.Ok)
+        self._butonBox.addButton(Qt.QDialogButtonBox.Cancel)
+        self._layoutBotton.addWidget(self._butonBox)
+        self._layoutUpper.addStretch(1)
+        self._layoutBotton.addStretch(1)
+        self._mainLayout.addLayout(self._layoutUpper)
+        self._mainLayout.addLayout(self._layoutBotton)
+        self.setLayout(self._mainLayout)
+        self._butonBox.rejected.connect(self.close)
+        self._butonBox.accepted.connect(self.close)
+        self._campos = {}
+        self.show()
+    
+    def __del__(self):
+        self.deleteLater()    
         
         
     
-    def addFieldData(self, fieldName):
-        self._layout.addWidget(fieldName)
+    def addFieldData(self, fieldDataWidget):
+        if isinstance(fieldDataWidget, fieldData):
+            self._layoutUpper.addWidget(fieldDataWidget)
+            self._campos[fieldDataWidget.alias()] = fieldDataWidget
+        else:
+            print("ERROR: El control %s , no es del tipo fielData" % fieldDataWidget.alias())
+    
+    def callAceptar(self, funcion):
+        self._butonBox.accepted.connect(funcion)
     
     
+    def fieldDataValue(self, name):
+        return self._campos[name].value()
+    
+    def setfieldDataValue(self,name,value):
+        self._campos[name].setValue(value)
 
 
 
@@ -102,34 +134,49 @@ class fieldData(QtWidgets.QWidget):
     
     def __init__(self, alias = None, value = None):
         super(fieldData, self).__init__()
+        if value is None:
+            value = str("")
         self._editable = True
         self.setType(value)
         self.setAlias(alias)
         self.setValue(value)
         self.mountLayout()
+        self.setObjectName(alias)
           
     
     def setAlias(self, value):
         self._label.setText(value)
+
         self.paintLayout()
     
     def alias(self):
-        return self._label
+        return self._label.text()
     
     def value(self):
         _retorno = None
-        if isinstance(self._value , bool):
+        print("Tipo %s" % type(self._value))
+        if isinstance(self._value , QtWidgets.QCheckBox):
             _retorno = self._value.checkState()
+        elif isinstance(self._value, QtWidgets.QComboBox):
+            _retorno = self._value.currentText()
+            #Cuando no hay select ....
         else:
             _retorno = self._value.text()
+        
+        if _retorno is None or not _retorno:
+            _retorno = False
         return _retorno
     
     
     def setValue(self, value):
-        if isinstance(value , bool):
+        if isinstance(self._value , bool):
             self._value.setCheckState(bool(value))
+        elif isinstance(self._value, QtWidgets.QComboBox):
+            self._value.clear()
+            for name in value:
+                self._value.addItem(value[name])
         else:
-            self._value.setText(value)
+            self._value.setText(str(value))
         
         self.paintLayout()
     
@@ -154,6 +201,8 @@ class fieldData(QtWidgets.QWidget):
         elif isinstance(value , bool): #Boleano
             #print("Es booleano")
             self._value = Qt.QCheckBox()
+        elif isinstance(value, dict): #Combo
+            self._value = Qt.QComboBox()
         else:
             print("FieldData.DrawType(%s) desconocido. Se usa String" % type(value))
     
@@ -166,7 +215,7 @@ class fieldData(QtWidgets.QWidget):
     
     def paintLayout(self):
         #Redimensiona el control apra que aparezcan bien todos los campos
-        _leng = 220
+        _leng = 250
         self.setFixedSize(_leng,40)
     
     def editable(self):

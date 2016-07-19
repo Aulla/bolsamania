@@ -2,9 +2,16 @@
 
 -- Valores diferentes de cada bolsa
 create table valores (
-    name        text primary key not null,
+    id          integer primary key autoincrement not null,
+    name        text,
     description text,
     bolsa	integer
+);
+
+-- Configuracion
+create table config (
+    name        text primary key not null,
+    value	 text
 );
 
 -- Diferentes bolsas
@@ -20,10 +27,12 @@ create table cartera (
     description	 text,
     acciones     integer,
     precioc      integer,
-    valor        text,
-    actualizado	 date
+    idvalor      integer
 );
 
 insert into bolsa (name, description) values ('^IBEX', 'Bolsa de Madrid');    
 insert into valores (name, description, bolsa) values ('SAM.MC', 'Santander', '^IBEX');
-insert into cartera (description, acciones,valor) values ('Santander','200','SAM.MC');
+insert into valores (name, description, bolsa) values ('BAK.MC', 'Bankia', '^IBEX');
+insert into valores (name, description, bolsa) values ('BBV.MC', 'Bilbao Vizcaya', '^IBEX');
+
+insert into config (name, value) values ('timewallet', '5');

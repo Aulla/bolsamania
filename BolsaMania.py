@@ -18,31 +18,28 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ###############################################################################
-
-from tools.recolector import recolector
 from tools.database import database
-from tools.controlesqt5 import tableviewQt5, fieldData, formRecord
-from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox
-from PyQt5 import uic, Qt
+from libs.wallet import wallet
+from PyQt5.QtWidgets import QMainWindow, QApplication
+from PyQt5 import uic
 
 import os, sys
 
 qtFolder = "./forms/"
 qtMainWindow = "%smainwindow.ui" % qtFolder
 qtMasterWalletWindow = "%smasterwallet.ui" % qtFolder
-qtWalletWindow = "%swallet.ui" % qtFolder
 
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtMainWindow)
 
-version = "0.1"
+version = "0.2"
 
 class BolsaMania(QMainWindow):
     
     db = None
     fichero = "./data/bolsamania.db"
-    cursor = None
+    _cursor = None
     uiMW = None
-    uiWallet = None
+    _wallet = None
     uiMasterWallet = None
     _tableViewWallet = None
     
@@ -63,18 +60,13 @@ class BolsaMania(QMainWindow):
             self.db.createSchema()
         
         self.db.conecta()
-        self.cursor = self.db.conn.cursor()
 
     def __del__(self):
         self.db.desconecta()
         self.close()
         
-    def cartera_clicked(self):
-        print("Abriendo mi cartera ...")
-        self.uiMasterWallet = uic.loadUi(qtMasterWalletWindow)
-        self.uiMasterWallet.setModal(True)
-        self.cargaCartera()
-        self.uiMasterWallet.show()
+    def cartera_clicked(self):     
+        self.wallet = wallet(qtMasterWalletWindow, self.db)
     
     def prevision_clicked(self):
         print("Abriendo prevision ...")  
@@ -82,60 +74,12 @@ class BolsaMania(QMainWindow):
     def comparativa_clicked(self):
         print("Abriendo comparativa ...")
     
-    def cargaCartera(self):
-        self.pintatvWallet()
-        self.uiMasterWallet.pbAdd.clicked.connect(self.addCartera_clicked)
-        self.uiMasterWallet.pbDel.clicked.connect(self.delCartera_clicked)
-        self.uiMasterWallet.pbMod.clicked.connect(self.modifyCartera_clicked)
-        
     
-    def formCartera(self, titulo= None):
-        self.uiWallet = formRecord(titulo)
-        cdescripcion = fieldData("Descripción", "yo mismo")
-        cacciones = fieldData("Cartera", True)
-        cotros = fieldData("Otros", "Otra cosa")
-
-        self.uiWallet.addFieldData(cdescripcion)
-        self.uiWallet.addFieldData(cacciones)
-        self.uiWallet.addFieldData(cotros)
-        
-    def addCartera_clicked(self):
-        self.formCartera("Nueva Cartera")
-        self.uiWallet.show()
-        
-
-    def modifyCartera_clicked(self):
-        self.formCartera("Modificar cartera Cartera")
-        self.uiWallet.show()
-        
-        
-    def delCartera_clicked(self):
-        reply = QMessageBox.question(self, 'Message', "¿Desea eliminar la cartera seleccionada ?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            print("Borrando registro id ... %s" % self._tableViewWallet.valorGridSeleccionado(0))
-
-    
-    def pintatvWallet(self):
-        #print("Pintando cabecera de tvWallet")
-        self._tableViewWallet = tableviewQt5(self.uiMasterWallet.tvWallet)
-        self._tableViewWallet.cargaCabecera(0,"ID", 0)
-        self._tableViewWallet.cargaCabecera(1,"DESCRIPCION", 0)
-        self._tableViewWallet.cargaCabecera(2,"ACCIONES", 0 )
-        
-        #Rellenamos grid
-        self.cursor.execute("select id, description, acciones from cartera where 1 = 1")
-        i = 0
-        for registro in self.cursor.fetchall():
-            _id, description, acciones = registro
-            self._tableViewWallet.cargaGrid(i,0,_id)
-            self._tableViewWallet.cargaGrid(i,1,description)
-            self._tableViewWallet.cargaGrid(i,2,acciones)
-            i = i + 1
         
         
 
             
-            
+ 
         #self.uiWallet.tvWallet.refresh()
         
 if __name__ == "__main__":
