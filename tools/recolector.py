@@ -20,13 +20,27 @@
 ###############################################################################
 
 from tools.yahoodownload import YahooDownload
+import tempfile
 
 class recolector(object):
     url_ = None
+    _valor = None
+    _fileOutput = None
     
-    def __init__(self, valor, desde, hasta, period):
-        self.url_ = YahooDownload(valor, desde , hasta, period, True)
-        self.url_.writetofile('./temp/%s_%s_%s.csv' % (valor,desde,hasta))
+    def __init__(self, valor):
+        self._valor = valor
+    
+    def setValor(self, valor):
+        self._valor = valor
+    
+    def ask(self, desde, hasta, periodo, orden = True):
+        self.url_ = YahooDownload(self._valor, desde , hasta, periodo, orden)
+        dirtemp = tempfile.mkdtemp()
+        self._fileOutput = "%s/%s_%s_%s.csv" % (dirtemp, self._valor,desde,hasta)
+        #print("Escribiendo en %s" % self._fileOutput)
+        self.url_.writetofile(self._fileOutput)
+        return self._fileOutput
+        
     
     
     def __del__(self):

@@ -3,4 +3,6 @@ encoding//libs/wallet.py=utf-8
 encoding//tools/config.py=utf-8
 encoding//tools/controlesqt5.py=utf-8
 encoding//tools/database.py=utf-8
+encoding//tools/recolector.py=utf-8
+encoding//tools/yahoodownload.py=utf-8
 encoding/BolsaMania.py=utf-8

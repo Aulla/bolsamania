@@ -30,10 +30,15 @@ class tableviewQt5(object):
         self._tableView.setAlternatingRowColors(True)
         self._model = QtGui.QStandardItemModel(self._tableView)
         self._tableView.setModel(self._model)
+        self._tableView.setEditTriggers(Qt.QAbstractItemView.NoEditTriggers)
+        self._tableView.setSelectionMode(Qt.QAbstractItemView.SingleSelection)
+        self._tableView.setSelectionBehavior(Qt.QAbstractItemView.SelectRows)
+        self._tableView.setAlternatingRowColors(True)
+        
     
     def cargaCabecera(self,position, value, align = None):
-        if align is not None:
-            print("FIXME: tableviewQt5.cargaCabecera.align %s" % align)
+        #if align is not None:
+            #print("FIXME: tableviewQt5.cargaCabecera.align %s" % align)
         self._model.setHorizontalHeaderItem(position, Qt.QStandardItem(str(value)))
     
     #Carga un valor especifico en una casilla especifica

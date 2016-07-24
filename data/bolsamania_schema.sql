@@ -31,8 +31,6 @@ create table cartera (
 );
 
 insert into bolsa (name, description) values ('^IBEX', 'Bolsa de Madrid');    
-insert into valores (name, description, bolsa) values ('SAM.MC', 'Santander', '^IBEX');
-insert into valores (name, description, bolsa) values ('BAK.MC', 'Bankia', '^IBEX');
-insert into valores (name, description, bolsa) values ('BBV.MC', 'Bilbao Vizcaya', '^IBEX');
+insert into valores (name, description, bolsa) values ('SAN.MC', 'Santander', '^IBEX');
 
 insert into config (name, value) values ('timewallet', '5');

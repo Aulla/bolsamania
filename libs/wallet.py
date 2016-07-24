@@ -20,21 +20,101 @@
 ###############################################################################
 
 from tools.controlesqt5 import tableviewQt5, fieldData, formRecord
+from tools.recolector import recolector
 from PyQt5 import uic
 from PyQt5.QtWidgets import QMessageBox
+from datetime import datetime, timedelta
+import csv
     
 class wallet(object):
     uiMasterWallet = None
     uiWallet = None
     db = None
     _oldDescription = None
+    _recolector = None
+    _valueActual = None
+    _valueMin = None
+    _valueMax = None
+    _valueDate = None
+    _valueOpen = None
+    _valueClose = None
+    _valueAdjust = None
+    _valueVolume = None
+    
     
     def __init__(self,masterW, db):
         self.db = db
         self.uiMasterWallet = uic.loadUi(masterW)
         self.uiMasterWallet.setModal(True)
         self.cargaCartera()
-        self.uiMasterWallet.show()  
+        self.uiMasterWallet.show()
+        self._tableViewWallet._tableView.clicked.connect(self.tableView_Clicked)
+        self.tableView_Clicked()
+    
+    def tableView_Clicked(self):
+        print("TableView clicked !!")
+        #Hay que recoger cuanto es el intervalo y luego lanzar un proceso cada tiempo ...
+        resultIdCartera = self.db.sqlSelect("cartera","precioc, acciones, idvalor", "id = %s" % self._tableViewWallet.valorGridSeleccionado(0))
+        #print("result ... %s" % resultIdCartera)
+        idValor = None
+        for result in resultIdCartera:
+            self._precioc, self._acciones, idValor = result
+        
+        if idValor is None:
+            return
+        #print("idValor es %s" % idValor)
+        
+        resultValorName = self.db.sqlSelect("valores","name", "id = %s" % idValor)
+        valorName = None
+        for result2 in resultValorName:
+            valorName = result2[0]
+        
+        #print("El valor a buscar es ... %s" % valorName) 
+        
+        _recolector = recolector(valorName)
+        _desde = datetime.now()
+        cerrado = False
+        if _desde.strftime("%w") is '0':
+            _desde = _desde + timedelta(days=-2)
+            cerrado = True
+        
+        if _desde.strftime("%w") is '6':
+            _desde = _desde + timedelta(days=-1)
+            cerrado = True
+        _hasta = _desde
+        
+        _periodo = "d"
+        ficheroTemp = _recolector.ask(_desde, _hasta, _periodo)
+        cabecera = False
+        #print("Leyendo fichero %s" % ficheroTemp)
+        with open(ficheroTemp, 'r') as csvfile:
+            spamreader = csv.reader(csvfile,quotechar='|')
+            for row in spamreader:
+                if cabecera is False:
+                    cabecera = True
+                    #print("Cabecera %s" % row)
+                else:
+                    #print("Linea %s" % row)
+                    self._valueDate, self._valueOpen, self._valueMax, self._valueMin, self._valueClose, self._valueVolume, self._valueAdjust = row
+                    self.updateLabels()
+    
+    def updateLabels(self):
+        
+        _coste = self._acciones * float(self._precioc)
+        _valorActual = self._acciones * float(self._valueClose)
+        _variacionN = self._acciones * (float(self._valueOpen) - float(self._valueClose))
+        _variacionP = (_variacionN * 100) / _valorActual
+        _rentabilidadN = _valorActual - _coste
+        _rentabilidadP = (_rentabilidadN * 100 / _valorActual) 
+        
+        self.uiMasterWallet.lblCosteValue.setText(str(_coste))
+        self.uiMasterWallet.lblValorValue.setText(str(_valorActual))
+        self.uiMasterWallet.lblVariacionHoyValue.setText("%s (%s%%)" % (round(_variacionN, 3),round(_variacionP, 2)))
+        self.uiMasterWallet.lblRentabilidadValue.setText("%s (%s%%)" % (round(_rentabilidadN, 3), round(_rentabilidadP, 2)))
+        
+        
+        
+        
     
     
     def cargaCartera(self):
@@ -42,6 +122,7 @@ class wallet(object):
         self.uiMasterWallet.pbAdd.clicked.connect(self.addCartera_clicked)
         self.uiMasterWallet.pbDel.clicked.connect(self.delCartera_clicked)
         self.uiMasterWallet.pbMod.clicked.connect(self.modifyCartera_clicked)
+
         
     
     def formCartera(self, titulo= None):
